@@ -20,11 +20,6 @@ struct ContentView: View {
         } detail: {
             ChatView(viewModel: viewModel, showModelPicker: $showModelPicker, showingLogin: $showingLogin)
         }
-        #if os(macOS)
-        .frame(minWidth: 600, minHeight: 400)
-        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-        .toolbar(removing: .title)
-        #endif
         .sheet(isPresented: $showingLogin) {
             LoginSheet(viewModel: viewModel, isPresented: $showingLogin)
         }
@@ -110,11 +105,7 @@ struct LoginSheet: View {
             }
         }
         .padding(24)
-        #if os(macOS)
-        .frame(width: 400)
-        #else
         .frame(maxWidth: 400)
-        #endif
     }
 }
 

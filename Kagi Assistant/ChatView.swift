@@ -4,9 +4,6 @@
 //
 
 import SwiftUI
-#if os(macOS)
-import AppKit
-#endif
 import UniformTypeIdentifiers
 
 struct ChatView: View {
@@ -19,9 +16,6 @@ struct ChatView: View {
     @State private var showAccountPopover = false
     @State private var focusTrigger = false
     @State private var showingFilePicker = false
-    #if os(macOS)
-    @State private var keyMonitor: Any?
-    #endif
     @State private var editContext: MessageEditContext?
     @State private var preEditMessageText = ""
     @State private var preEditComposerAttachments: [ChatAttachment] = []
@@ -41,25 +35,6 @@ struct ChatView: View {
                     cancelEditing()
                     focusTrigger.toggle()
                 }
-                #if os(macOS)
-                .onAppear {
-                    keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                        if event.charactersIgnoringModifiers == "/",
-                           event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty,
-                           !(event.window?.firstResponder is NSTextView) {
-                            focusTrigger.toggle()
-                            return nil
-                        }
-                        return event
-                    }
-                }
-                .onDisappear {
-                    if let keyMonitor {
-                        NSEvent.removeMonitor(keyMonitor)
-                    }
-                    keyMonitor = nil
-                }
-                #endif
         } else {
             ContentUnavailableView(
                 "No Chat Selected",

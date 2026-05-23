@@ -3,44 +3,11 @@
 //  Kagi Assistant
 //
 
-#if os(macOS)
-import AppKit
-#else
 import UIKit
-#endif
 import SwiftUI
 import WebKit
 
-#if os(macOS)
-private class NonScrollableWebView: WKWebView {
-    private var isHorizontalScrolling = false
-
-    override func scrollWheel(with event: NSEvent) {
-        // Allow horizontal scroll events to be handled by the web view
-        // (e.g. for horizontally-scrollable tables) while forwarding
-        // vertical scrolls to the parent scroll view.
-        if event.phase == .began {
-            isHorizontalScrolling = abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY)
-        }
-
-        if isHorizontalScrolling {
-            super.scrollWheel(with: event)
-        } else {
-            nextResponder?.scrollWheel(with: event)
-        }
-
-        if event.phase == .ended || event.phase == .cancelled {
-            isHorizontalScrolling = false
-        }
-    }
-}
-#endif
-
-#if os(macOS)
-struct HTMLMessageView: NSViewRepresentable {
-#else
 struct HTMLMessageView: UIViewRepresentable {
-#endif
     let html: String
     @Binding var dynamicHeight: CGFloat
 
@@ -48,30 +15,6 @@ struct HTMLMessageView: UIViewRepresentable {
         Coordinator(self)
     }
 
-#if os(macOS)
-    func makeNSView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        config.suppressesIncrementalRendering = false
-
-        let webView = NonScrollableWebView(frame: .zero, configuration: config)
-        webView.navigationDelegate = context.coordinator
-        webView.setValue(false, forKey: "drawsBackground")
-
-        context.coordinator.webView = webView
-
-        // Load the shell page once; content will be injected via JS
-        let shell = Self.shellHTML()
-        webView.loadHTMLString(shell, baseURL: nil)
-
-        return webView
-    }
-
-    func updateNSView(_ webView: WKWebView, context: Context) {
-        print("[HTMLMessageView] updateNSView called, html length: \(html.count)")
-        context.coordinator.parent = self
-        context.coordinator.updateContent(html)
-    }
-#else
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.suppressesIncrementalRendering = false
@@ -96,7 +39,6 @@ struct HTMLMessageView: UIViewRepresentable {
         context.coordinator.parent = self
         context.coordinator.updateContent(html)
     }
-#endif
 
     /// The page shell — loaded once. Contains the height observer
     /// and a `setContent()` JS function for incremental updates.
@@ -311,11 +253,7 @@ struct HTMLMessageView: UIViewRepresentable {
 
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url {
-                #if os(macOS)
-                NSWorkspace.shared.open(url)
-                #else
                 UIApplication.shared.open(url)
-                #endif
                 decisionHandler(.cancel)
             } else {
                 decisionHandler(.allow)
@@ -333,13 +271,7 @@ struct HTMLMessageView: UIViewRepresentable {
                 }
             case "copyToClipboard":
                 guard let text = message.body as? String else { return }
-                #if os(macOS)
-                let pasteboard = NSPasteboard.general
-                pasteboard.clearContents()
-                pasteboard.setString(text, forType: .string)
-                #else
                 UIPasteboard.general.string = text
-                #endif
             default:
                 break
             }
