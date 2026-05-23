@@ -15,36 +15,39 @@ struct PastedImageData {
 
 // MARK: - iOS: Auto-resizing UITextView wrapper
 
-private class InputTextView: UITextView {
+final class InputTextView: UITextView {
     var onSend: (() -> Void)?
     var onPasteImages: (([PastedImageData]) -> Void)?
+    var focusPending: Bool = false
 
     override func paste(_ sender: Any?) {
-        let pasteboard = UIPasteboard.general
-        let imageTypes = pasteboard.itemProviders.filter { provider in
-            provider.hasItemConformingToTypeIdentifier(UTType.image.identifier)
-        }
-        if let onPasteImages, !imageTypes.isEmpty {
-            var pastedImages: [PastedImageData] = []
-            for provider in imageTypes {
-                // Try common image types
-                for imageType in [UTType.png, UTType.jpeg, UTType.tiff, UTType.webP] {
-                    if let data = pasteboard.data(forPasteboardType: imageType.identifier) {
-                        pastedImages.append(PastedImageData(
-                            data: data,
-                            mimeType: imageType.preferredMIMEType ?? "application/octet-stream",
-                            contentType: imageType
-                        ))
-                        break
+        DispatchQueue.main.async {
+            let pasteboard = UIPasteboard.general
+            let imageTypes = pasteboard.itemProviders.filter { provider in
+                provider.hasItemConformingToTypeIdentifier(UTType.image.identifier)
+            }
+            if let onPasteImages = self.onPasteImages, !imageTypes.isEmpty {
+                var pastedImages: [PastedImageData] = []
+                for provider in imageTypes {
+                    // Try common image types
+                    for imageType in [UTType.png, UTType.jpeg, UTType.tiff, UTType.webP] {
+                        if let data = pasteboard.data(forPasteboardType: imageType.identifier) {
+                            pastedImages.append(PastedImageData(
+                                data: data,
+                                mimeType: imageType.preferredMIMEType ?? "application/octet-stream",
+                                contentType: imageType
+                            ))
+                            break
+                        }
                     }
                 }
+                if !pastedImages.isEmpty {
+                    onPasteImages(pastedImages)
+                    return
+                }
             }
-            if !pastedImages.isEmpty {
-                onPasteImages(pastedImages)
-                return
-            }
+            super.paste(sender)
         }
-        super.paste(sender)
     }
 }
 
@@ -97,8 +100,14 @@ struct AutoResizingTextView: UIViewRepresentable {
 
         if requestFocus != context.coordinator.lastFocusTrigger {
             context.coordinator.lastFocusTrigger = requestFocus
-            DispatchQueue.main.async {
-                textView.becomeFirstResponder()
+            if requestFocus && !textView.isFirstResponder && !textView.focusPending {
+                textView.focusPending = true
+                DispatchQueue.main.async {
+                    textView.becomeFirstResponder()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        textView.focusPending = false
+                    }
+                }
             }
         }
 
@@ -120,20 +129,39 @@ struct AutoResizingTextView: UIViewRepresentable {
 
         func textViewDidChange(_ textView: UITextView) {
             parent.text = textView.text
-            recalcHeight()
-            updatePlaceholder()
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                self?.recalcHeightAsync()
+                DispatchQueue.main.async {
+                    self?.updatePlaceholder()
+                }
+            }
         }
 
-        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            if text == "\n" {
-                parent.onSend?()
-                return false
+        private func recalcHeightAsync() {
+            guard let textView = textView else { return }
+
+            let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+            let lineHeight = font.lineHeight
+            let inset = textView.textContainerInset
+            let singleLineHeight = lineHeight + inset.top + inset.bottom
+            let maxHeight = lineHeight * CGFloat(parent.maxLines) + inset.top + inset.bottom
+
+            let size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .greatestFiniteMagnitude))
+            let naturalHeight = size.height
+
+            let targetHeight = max(singleLineHeight, min(naturalHeight, maxHeight))
+            let isScrollEnabled = naturalHeight > maxHeight
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.parent.desiredHeight = targetHeight
+                self.textView?.isScrollEnabled = isScrollEnabled
             }
-            return true
         }
 
         func recalcHeight() {
-            guard let textView else { return }
+            // Light fallback synchronous call for initial sizing or UI thread safe calls
+            guard let textView = textView else { return }
 
             let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
             let lineHeight = font.lineHeight
@@ -150,6 +178,14 @@ struct AutoResizingTextView: UIViewRepresentable {
             DispatchQueue.main.async {
                 self.parent.desiredHeight = targetHeight
             }
+        }
+
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            if text == "\n" {
+                parent.onSend?()
+                return false
+            }
+            return true
         }
 
         func setupPlaceholder(in textView: UITextView) {
@@ -175,3 +211,4 @@ struct AutoResizingTextView: UIViewRepresentable {
         }
     }
 }
+

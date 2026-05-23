@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showModelPicker = false
 
     var body: some View {
+        // New .task added here outside NavigationSplitView to check token immediately on launch
         NavigationSplitView {
             SidebarView(viewModel: viewModel, focusSearch: $searchFocusTrigger)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 320)
@@ -52,6 +53,18 @@ struct ContentView: View {
             }
             .opacity(0)
             .allowsHitTesting(false)
+        }
+        .task {
+            if UserDefaults.standard.string(forKey: "kagi_session") == nil {
+                showingLogin = true
+            }
+        }
+        .onChange(of: viewModel.isAuthenticated) { isAuthenticated in
+            if isAuthenticated {
+                showingLogin = false
+            } else {
+                showingLogin = true
+            }
         }
     }
 }
