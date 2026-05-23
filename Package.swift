@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "KagiAssistantCore",
-    platforms: [.iOS(.v16)],
+    platforms: [.iOS(.v16), .macOS(.v12)],
     targets: [
         .target(
             name: "KagiAssistantCore",
