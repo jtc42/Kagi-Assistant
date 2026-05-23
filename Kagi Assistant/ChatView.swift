@@ -4,7 +4,9 @@
 //
 
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 import UniformTypeIdentifiers
 
 struct ChatView: View {
@@ -16,7 +18,10 @@ struct ChatView: View {
     @State private var shouldAutoScroll = true
     @State private var showAccountPopover = false
     @State private var focusTrigger = false
+    @State private var showingFilePicker = false
+    #if os(macOS)
     @State private var keyMonitor: Any?
+    #endif
     @State private var editContext: MessageEditContext?
     @State private var preEditMessageText = ""
     @State private var preEditComposerAttachments: [ChatAttachment] = []
@@ -36,6 +41,7 @@ struct ChatView: View {
                     cancelEditing()
                     focusTrigger.toggle()
                 }
+                #if os(macOS)
                 .onAppear {
                     keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                         if event.charactersIgnoringModifiers == "/",
@@ -53,6 +59,7 @@ struct ChatView: View {
                     }
                     keyMonitor = nil
                 }
+                #endif
         } else {
             ContentUnavailableView(
                 "No Chat Selected",
@@ -249,7 +256,7 @@ struct ChatView: View {
                     .help(viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking")
                 }
                 Button {
-                    openAttachmentPicker()
+                    showingFilePicker = true
                 } label: {
                     Image(systemName: "plus.circle")
                         .frame(width: 18, height: 18)
@@ -275,6 +282,15 @@ struct ChatView: View {
                 )
                 .frame(height: textEditorHeight)
                 .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+                .fileImporter(
+                    isPresented: $showingFilePicker,
+                    allowedContentTypes: [.item],
+                    allowsMultipleSelection: true
+                ) { result in
+                    if case .success(let urls) = result {
+                        viewModel.addAttachments(from: urls)
+                    }
+                }
 
                 if viewModel.isStreaming {
                     Button {
@@ -413,17 +429,5 @@ struct ChatView: View {
         viewModel.composerAttachments = preEditComposerAttachments
         preEditMessageText = ""
         preEditComposerAttachments = []
-    }
-
-    private func openAttachmentPicker() {
-        let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = true
-        panel.canChooseFiles = true
-        panel.canChooseDirectories = false
-        panel.allowedContentTypes = [.item]
-
-        if panel.runModal() == .OK {
-            viewModel.addAttachments(from: panel.urls)
-        }
     }
 }

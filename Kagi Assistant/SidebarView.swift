@@ -4,6 +4,11 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct SidebarView: View {
     @Bindable var viewModel: ChatViewModel
@@ -38,8 +43,12 @@ struct SidebarView: View {
                     .contextMenu {
                         if let kagiId = thread.kagiThreadId {
                             Button("Copy Link") {
+                                #if os(macOS)
                                 NSPasteboard.general.clearContents()
                                 NSPasteboard.general.setString("https://kagi.com/assistant/\(kagiId)", forType: .string)
+                                #else
+                                UIPasteboard.general.string = "https://kagi.com/assistant/\(kagiId)"
+                                #endif
                             }
                         }
                         Button("Delete", role: .destructive) {

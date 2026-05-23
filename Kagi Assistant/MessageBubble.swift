@@ -4,6 +4,11 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 // MARK: - Message Bubble
 
@@ -40,8 +45,10 @@ struct MessageBubble: View {
                         }
                         .buttonStyle(.plain)
                         .help("Edit message")
+                        #if os(macOS)
                         .opacity(isHoveringUserBubble ? 1 : 0)
                         .animation(.easeInOut(duration: 0.12), value: isHoveringUserBubble)
+                        #endif
                     }
                     Text("You")
                         .font(.caption)
@@ -64,9 +71,11 @@ struct MessageBubble: View {
                     Button("Edit Message", action: onEdit)
                 }
             }
+            #if os(macOS)
             .onHover { hovering in
                 isHoveringUserBubble = hovering
             }
+            #endif
         }
     }
 
@@ -151,10 +160,17 @@ struct AttachmentChip: View {
         return ByteCountFormatter.string(fromByteCount: Int64(byteCount), countStyle: .file)
     }
 
+    #if os(macOS)
     private var thumbnailImage: NSImage? {
         guard let data = attachment.thumbnailData else { return nil }
         return NSImage(data: data)
     }
+    #else
+    private var thumbnailImage: UIImage? {
+        guard let data = attachment.thumbnailData else { return nil }
+        return UIImage(data: data)
+    }
+    #endif
 
     var body: some View {
         if let image = thumbnailImage {
@@ -164,6 +180,7 @@ struct AttachmentChip: View {
         }
     }
 
+    #if os(macOS)
     private func thumbnailView(image: NSImage) -> some View {
         Image(nsImage: image)
             .resizable()
@@ -181,6 +198,25 @@ struct AttachmentChip: View {
                 }
             }
     }
+    #else
+    private func thumbnailView(image: UIImage) -> some View {
+        Image(uiImage: image)
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(maxWidth: 128, maxHeight: 128)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(alignment: .topTrailing) {
+                if style == .composer, let onRemove {
+                    Button(action: onRemove) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.white, .black.opacity(0.55))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(6)
+                }
+            }
+    }
+    #endif
 
     private var chipView: some View {
         HStack(spacing: 6) {
