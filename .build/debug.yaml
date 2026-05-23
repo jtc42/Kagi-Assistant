@@ -1,0 +1,181 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module": ["<KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module>"]
+  "KagiAssistantCorePackageDiscoveredTests-x86_64-unknown-linux-gnu-debug.module": ["<KagiAssistantCorePackageDiscoveredTests-x86_64-unknown-linux-gnu-debug.module>"]
+  "KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.module": ["<KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.module>"]
+  "KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.test": ["<KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.test>"]
+  "KagiAssistantCoreTests-x86_64-unknown-linux-gnu-debug.module": ["<KagiAssistantCoreTests-x86_64-unknown-linux-gnu-debug.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module>"]
+  "test": ["<KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module>","<KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.test>","<KagiAssistantCoreTests-x86_64-unknown-linux-gnu-debug.module>"]
+default: "main"
+nodes:
+  "/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/tmp/workspace/jtc42/Kagi-Assistant/Tests/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAssistantCore.swiftmodule.o":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCore.swiftmodule"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAssistantCore.swiftmodule.o"]
+    description: "Wrapping AST for KagiAssistantCore for debugging"
+    args: ["/usr/share/swift/usr/bin/swiftc","-modulewrap","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCore.swiftmodule","-o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAssistantCore.swiftmodule.o","-target","x86_64-unknown-linux-gnu"]
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/ContentParser.swift","/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/KagiAPI.swift","/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/Models.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/DerivedSources/resource_bundle_accessor.swift"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/sources"]
+    description: "Write auxiliary file /tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/sources"
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCorePackageDiscoveredTests.swiftmodule.o":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageDiscoveredTests.swiftmodule"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCorePackageDiscoveredTests.swiftmodule.o"]
+    description: "Wrapping AST for KagiAssistantCorePackageDiscoveredTests for debugging"
+    args: ["/usr/share/swift/usr/bin/swiftc","-modulewrap","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageDiscoveredTests.swiftmodule","-o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCorePackageDiscoveredTests.swiftmodule.o","-target","x86_64-unknown-linux-gnu"]
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.derived/KagiAssistantCoreTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.derived/all-discovered-tests.swift"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/sources"]
+    description: "Write auxiliary file /tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/sources"
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.derived/all-discovered-tests.swift":
+    tool: test-discovery-tool
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ContentParserTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAPIParsingTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ModelsTests.swift.o"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.derived/KagiAssistantCoreTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.derived/all-discovered-tests.swift"]
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/KagiAssistantCorePackageTests.swiftmodule.o":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageTests.swiftmodule"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/KagiAssistantCorePackageTests.swiftmodule.o"]
+    description: "Wrapping AST for KagiAssistantCorePackageTests for debugging"
+    args: ["/usr/share/swift/usr/bin/swiftc","-modulewrap","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageTests.swiftmodule","-o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/KagiAssistantCorePackageTests.swiftmodule.o","-target","x86_64-unknown-linux-gnu"]
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.derived/runner.swift"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/sources"]
+    description: "Write auxiliary file /tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/sources"
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.derived/runner.swift":
+    tool: test-entry-point-tool
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageDiscoveredTests.swiftmodule"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.derived/runner.swift"]
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/ContentParser.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAPI.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAssistantCore.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/Models.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/resource_bundle_accessor.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCorePackageDiscoveredTests.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCoreTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/all-discovered-tests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/KagiAssistantCorePackageTests.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/runner.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ContentParserTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAPIParsingTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAssistantCoreTests.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ModelsTests.swift.o"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.product/Objects.LinkFileList"
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAssistantCoreTests.swiftmodule.o":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCoreTests.swiftmodule"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAssistantCoreTests.swiftmodule.o"]
+    description: "Wrapping AST for KagiAssistantCoreTests for debugging"
+    args: ["/usr/share/swift/usr/bin/swiftc","-modulewrap","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCoreTests.swiftmodule","-o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAssistantCoreTests.swiftmodule.o","-target","x86_64-unknown-linux-gnu"]
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/tmp/workspace/jtc42/Kagi-Assistant/Tests/ContentParserTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/Tests/KagiAPIParsingTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/Tests/ModelsTests.swift"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/sources"]
+    description: "Write auxiliary file /tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/sources"
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore_KagiAssistantCore.resources/codehilite.css":
+    tool: copy-tool
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/codehilite.css"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore_KagiAssistantCore.resources/codehilite.css"]
+    description: "Copying /tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/codehilite.css"
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore_KagiAssistantCore.resources/message.css":
+    tool: copy-tool
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/message.css"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore_KagiAssistantCore.resources/message.css"]
+    description: "Copying /tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/message.css"
+
+  "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/swift-version--1BFCD5C06E9F820A.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/usr/share/swift/usr/bin/swiftc"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/swift-version--1BFCD5C06E9F820A.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/swift-version--1BFCD5C06E9F820A.txt"
+
+  "<KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module>":
+    tool: phony
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/ContentParser.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAPI.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/Models.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/resource_bundle_accessor.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCore.swiftmodule"]
+    outputs: ["<KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module>"]
+
+  "<KagiAssistantCorePackageDiscoveredTests-x86_64-unknown-linux-gnu-debug.module>":
+    tool: phony
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCoreTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/all-discovered-tests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageDiscoveredTests.swiftmodule"]
+    outputs: ["<KagiAssistantCorePackageDiscoveredTests-x86_64-unknown-linux-gnu-debug.module>"]
+
+  "<KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.module>":
+    tool: phony
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/runner.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageTests.swiftmodule"]
+    outputs: ["<KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.module>"]
+
+  "<KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.test>":
+    tool: phony
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.xctest"]
+    outputs: ["<KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.test>"]
+
+  "<KagiAssistantCoreTests-x86_64-unknown-linux-gnu-debug.module>":
+    tool: phony
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ContentParserTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAPIParsingTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ModelsTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCoreTests.swiftmodule"]
+    outputs: ["<KagiAssistantCoreTests-x86_64-unknown-linux-gnu-debug.module>"]
+
+  "C.KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/ContentParser.swift","/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/KagiAPI.swift","/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/Models.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/DerivedSources/resource_bundle_accessor.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/swift-version--1BFCD5C06E9F820A.txt","<KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module-resources>","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/sources"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/ContentParser.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAPI.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/Models.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/resource_bundle_accessor.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCore.swiftmodule"]
+    description: "Compiling Swift Module 'KagiAssistantCore' (4 sources)"
+    args: ["/usr/share/swift/usr/bin/swiftc","-module-name","KagiAssistantCore","-emit-dependencies","-emit-module","-emit-module-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCore.swiftmodule","-output-file-map","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/output-file-map.json","-parse-as-library","-incremental","-c","@/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/sources","-I","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules","-target","x86_64-unknown-linux-gnu","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/index/store","-Onone","-enable-testing","-j4","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE","-module-cache-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/include/KagiAssistantCore-Swift.h","-swift-version","5","-DSPM_BUILD","-g","-Xcc","-fPIC","-Xcc","-g","-package-name","kagi_assistant","-Xcc","-fno-omit-frame-pointer"]
+
+  "C.KagiAssistantCorePackageDiscoveredTests-x86_64-unknown-linux-gnu-debug.module":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.derived/KagiAssistantCoreTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.derived/all-discovered-tests.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/swift-version--1BFCD5C06E9F820A.txt","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCoreTests.swiftmodule","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/sources"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCoreTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/all-discovered-tests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageDiscoveredTests.swiftmodule"]
+    description: "Compiling Swift Module 'KagiAssistantCorePackageDiscoveredTests' (2 sources)"
+    args: ["/usr/share/swift/usr/bin/swiftc","-module-name","KagiAssistantCorePackageDiscoveredTests","-emit-dependencies","-emit-module","-emit-module-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageDiscoveredTests.swiftmodule","-output-file-map","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/output-file-map.json","-parse-as-library","-incremental","-c","@/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/sources","-I","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules","-target","x86_64-unknown-linux-gnu","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/index/store","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j4","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/include/KagiAssistantCorePackageDiscoveredTests-Swift.h","-g","-Xcc","-fPIC","-Xcc","-g","-package-name","kagi_assistant","-Xcc","-fno-omit-frame-pointer"]
+
+  "C.KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.module":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.derived/runner.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/swift-version--1BFCD5C06E9F820A.txt","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCoreTests.swiftmodule","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageDiscoveredTests.swiftmodule","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/sources"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/runner.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageTests.swiftmodule"]
+    description: "Compiling Swift Module 'KagiAssistantCorePackageTests' (1 sources)"
+    args: ["/usr/share/swift/usr/bin/swiftc","-module-name","KagiAssistantCorePackageTests","-emit-dependencies","-emit-module","-emit-module-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCorePackageTests.swiftmodule","-output-file-map","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/output-file-map.json","-parse-as-library","-incremental","-c","@/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/sources","-I","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules","-target","x86_64-unknown-linux-gnu","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/index/store","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j4","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/include/KagiAssistantCorePackageTests-Swift.h","-g","-Xcc","-fPIC","-Xcc","-g","-package-name","kagi_assistant","-Xcc","-fno-omit-frame-pointer"]
+
+  "C.KagiAssistantCorePackageTests-x86_64-unknown-linux-gnu-debug.test":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/ContentParser.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAPI.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/KagiAssistantCore.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/Models.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/resource_bundle_accessor.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCorePackageDiscoveredTests.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/KagiAssistantCoreTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageDiscoveredTests.build/all-discovered-tests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/KagiAssistantCorePackageTests.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.build/runner.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ContentParserTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAPIParsingTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAssistantCoreTests.swiftmodule.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ModelsTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.product/Objects.LinkFileList"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.xctest"]
+    description: "Linking ./.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.xctest"
+    args: ["/usr/share/swift/usr/bin/swiftc","-L","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug","-o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.xctest","-module-name","KagiAssistantCorePackageTests","-emit-executable","-Xlinker","-rpath=$ORIGIN","@/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCorePackageTests.product/Objects.LinkFileList","-target","x86_64-unknown-linux-gnu","-g"]
+
+  "C.KagiAssistantCoreTests-x86_64-unknown-linux-gnu-debug.module":
+    tool: shell
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/Tests/ContentParserTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/Tests/KagiAPIParsingTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/Tests/ModelsTests.swift","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/swift-version--1BFCD5C06E9F820A.txt","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCore.swiftmodule","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/sources"]
+    outputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ContentParserTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/KagiAPIParsingTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/ModelsTests.swift.o","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCoreTests.swiftmodule"]
+    description: "Compiling Swift Module 'KagiAssistantCoreTests' (3 sources)"
+    args: ["/usr/share/swift/usr/bin/swiftc","-module-name","KagiAssistantCoreTests","-emit-dependencies","-emit-module","-emit-module-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules/KagiAssistantCoreTests.swiftmodule","-output-file-map","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/output-file-map.json","-parse-as-library","-incremental","-c","@/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCoreTests.build/sources","-I","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/Modules","-target","x86_64-unknown-linux-gnu","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/index/store","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j4","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/ModuleCache","-parseable-output","-parse-as-library","-swift-version","5","-g","-Xcc","-fPIC","-Xcc","-g","-package-name","kagi_assistant","-Xcc","-fno-omit-frame-pointer"]
+
+  "KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module-resources":
+    tool: phony
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore_KagiAssistantCore.resources/codehilite.css","/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore_KagiAssistantCore.resources/message.css"]
+    outputs: ["<KagiAssistantCore-x86_64-unknown-linux-gnu-debug.module-resources>"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/tmp/workspace/jtc42/Kagi-Assistant/Kagi Assistant/","/tmp/workspace/jtc42/Kagi-Assistant/Tests/","/tmp/workspace/jtc42/Kagi-Assistant/Package.swift","/tmp/workspace/jtc42/Kagi-Assistant/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+

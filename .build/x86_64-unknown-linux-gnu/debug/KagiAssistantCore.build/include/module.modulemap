@@ -1,0 +1,3 @@
+module KagiAssistantCore {
+    header "/tmp/workspace/jtc42/Kagi-Assistant/.build/x86_64-unknown-linux-gnu/debug/KagiAssistantCore.build/include/KagiAssistantCore-Swift.h"
+}

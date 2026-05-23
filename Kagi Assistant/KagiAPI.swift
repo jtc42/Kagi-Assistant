@@ -132,6 +132,7 @@ struct KagiHiPayload: Decodable {
     let trace: String?
 }
 
+#if !SPM_BUILD
 // MARK: - API Client
 
 // Restricts all connections to kagi.com only
@@ -615,6 +616,7 @@ actor KagiAPIClient {
         return result
     }
 }
+#endif
 
 // MARK: - HTML Helpers
 
