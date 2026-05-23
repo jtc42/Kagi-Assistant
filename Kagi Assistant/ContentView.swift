@@ -76,49 +76,79 @@ struct LoginSheet: View {
     @Binding var isPresented: Bool
     @State private var tokenInput = ""
     @State private var isLoggingIn = false
+    @State private var showWebLogin = false
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Sign in to Kagi")
-                .font(.headline)
+        ZStack {
+            VStack(spacing: 16) {
+                Text("Sign in to Kagi")
+                    .font(.headline)
 
-            Text("Enter your Kagi session token. You can find this in your browser cookies for kagi.com (cookie name: `kagi_session`).")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                Text("Enter your Kagi session token. You can find this in your browser cookies for kagi.com (cookie name: `kagi_session`). Or sign in with the in-app browser.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
 
-            SecureField("Session Token", text: $tokenInput)
-                .textFieldStyle(.roundedBorder)
+                SecureField("Session Token", text: $tokenInput)
+                    .textFieldStyle(.roundedBorder)
 
-            HStack {
-                Button("Cancel") {
-                    isPresented = false
+                HStack {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                    .keyboardShortcut(.cancelAction)
+
+                    Spacer()
+
+                    Button("Sign In") {
+                        isLoggingIn = true
+                        Task {
+                            await viewModel.login(token: tokenInput)
+                            isLoggingIn = false
+                            if viewModel.isAuthenticated {
+                                isPresented = false
+                            }
+                        }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(tokenInput.isEmpty || isLoggingIn)
                 }
-                .keyboardShortcut(.cancelAction)
+                Button("Sign In with Browser") {
+                    showWebLogin = true
+                }
+                .disabled(isLoggingIn)
 
-                Spacer()
+                if isLoggingIn {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+            .padding(24)
+            .frame(maxWidth: 400)
 
-                Button("Sign In") {
-                    isLoggingIn = true
-                    Task {
-                        await viewModel.login(token: tokenInput)
-                        isLoggingIn = false
-                        if viewModel.isAuthenticated {
-                            isPresented = false
+            if showWebLogin {
+                Color.black.opacity(0.3).ignoresSafeArea()
+                LoginWebView { token in
+                    showWebLogin = false
+                    if let token, !token.isEmpty {
+                        tokenInput = token
+                        isLoggingIn = true
+                        Task {
+                            await viewModel.login(token: token)
+                            isLoggingIn = false
+                            if viewModel.isAuthenticated {
+                                isPresented = false
+                            }
                         }
                     }
                 }
-                .keyboardShortcut(.defaultAction)
-                .disabled(tokenInput.isEmpty || isLoggingIn)
-            }
-
-            if isLoggingIn {
-                ProgressView()
-                    .controlSize(.small)
+                .frame(width: 420, height: 640)
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .shadow(radius: 16)
+                .padding(24)
             }
         }
-        .padding(24)
-        .frame(maxWidth: 400)
     }
 }
 
