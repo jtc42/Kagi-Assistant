@@ -8,11 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		29D8C632C4B544AD90B64148 /* Kagi Assistant/message.css in Resources */ = {isa = PBXBuildFile; fileRef = 4A1BC3485DE54C34B10CFCA4 /* Kagi Assistant/message.css */; };
+		5DE391002FC23E4F00736BAE /* KagiAssistantAppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 5DE390FF2FC23E4F00736BAE /* KagiAssistantAppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1AB70C872F70B09A00B0D8B8 /* Kagi Assistant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Kagi Assistant.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A1BC3485DE54C34B10CFCA4 /* Kagi Assistant/message.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "Kagi Assistant/message.css"; sourceTree = "<group>"; };
+		5DE390FF2FC23E4F00736BAE /* KagiAssistantAppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = KagiAssistantAppIcon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,6 +41,7 @@
 			children = (
 				1AB70C892F70B09A00B0D8B8 /* Kagi Assistant */,
 				4A1BC3485DE54C34B10CFCA4 /* Kagi Assistant/message.css */,
+				5DE390FF2FC23E4F00736BAE /* KagiAssistantAppIcon.icon */,
 				1AB70C882F70B09A00B0D8B8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -115,6 +118,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5DE391002FC23E4F00736BAE /* KagiAssistantAppIcon.icon in Resources */,
 				29D8C632C4B544AD90B64148 /* Kagi Assistant/message.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -185,9 +189,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -245,9 +249,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -259,12 +263,12 @@
 		1AB70C932F70B09C00B0D8B8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = KagiAssistantAppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 35LBZVA92Z;
+				DEVELOPMENT_TEAM = 9XK6454BT5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Assistant;
@@ -277,7 +281,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "space.httpjames.Kagi-Assistant";
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jtcollins.Kagi-Assistant";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -292,12 +296,12 @@
 		1AB70C942F70B09C00B0D8B8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = KagiAssistantAppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 35LBZVA92Z;
+				DEVELOPMENT_TEAM = 9XK6454BT5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Assistant;
@@ -310,7 +314,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "space.httpjames.Kagi-Assistant";
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jtcollins.Kagi-Assistant";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
