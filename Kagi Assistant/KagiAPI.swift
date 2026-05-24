@@ -13,19 +13,19 @@ struct StreamChunk: Sendable {
     let done: Bool
 }
 
-struct KagiPromptRequest: Encodable {
+nonisolated struct KagiPromptRequest: Encodable, Sendable {
     let focus: Focus
     let profile: Profile
     let threads: [ThreadMeta]
 
-    struct Focus: Encodable {
+    nonisolated struct Focus: Encodable, Sendable {
         var thread_id: String?
         var message_id: String?
         var prompt: String
         var branch_id: String?
     }
 
-    struct Profile: Encodable {
+    nonisolated struct Profile: Encodable, Sendable {
         var id: String?
         var internet_access: Bool = true
         var lens_id: String?
@@ -33,7 +33,7 @@ struct KagiPromptRequest: Encodable {
         var personalizations: Bool = false
     }
 
-    struct ThreadMeta: Encodable {
+    nonisolated struct ThreadMeta: Encodable, Sendable {
         var tag_ids: [String] = []
         var saved: Bool = true
         var shared: Bool = false
@@ -308,7 +308,7 @@ actor KagiAPIClient {
     }
 
     func fetchThread(threadId: String) async throws -> (title: String, messages: [KagiMessageDTO]) {
-        print(threadId)
+
         let url = baseURL.appendingPathComponent("assistant/\(threadId)")
         var request = try makeRequest(url: url)
         request.httpMethod = "GET"

@@ -10,51 +10,59 @@ struct SidebarView: View {
     @Bindable var viewModel: ChatViewModel
     @Binding var focusSearch: Bool
     @State private var searchText = ""
-    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            TextField("Search threads...", text: $searchText)
-                .textFieldStyle(.roundedBorder)
-                .padding(8)
-                .focused($isSearchFocused)
-                .onSubmit {
-                    guard !searchText.isEmpty else { return }
-                    Task {
-                        await viewModel.searchAndSelectThread(query: searchText)
-                    }
-                }
-                .onChange(of: searchText) {
-                    if searchText.isEmpty {
-                        Task { await viewModel.fetchThreads() }
-                    }
-                }
-
-            Divider()
-
-            List(viewModel.threads, selection: $viewModel.selectedThreadID) { thread in
-                Text(thread.name)
-                    .tag(thread.id)
-                    .lineLimit(1)
-                    .contextMenu {
-                        if let kagiId = thread.kagiThreadId {
-                            Button("Copy Link") {
-                                UIPasteboard.general.string = "https://kagi.com/assistant/\(kagiId)"
-                            }
-                        }
-                        Button("Delete", role: .destructive) {
-                            viewModel.deleteThread(thread)
+        List(viewModel.threads, selection: $viewModel.selectedThreadID) { thread in
+            SidebarThreadRow(thread: thread)
+                .tag(thread.id)
+                .contextMenu {
+                    if let kagiId = thread.kagiThreadId {
+                        Button("Copy Link") {
+                            UIPasteboard.general.string = "https://kagi.com/assistant/\(kagiId)"
                         }
                     }
-            }
-            .onChange(of: viewModel.selectedThreadID) { _, newValue in
-                guard let newValue,
-                      let thread = viewModel.threads.first(where: { $0.id == newValue }) else { return }
-                Task { await viewModel.selectThread(thread) }
+                    Button("Delete", role: .destructive) {
+                        viewModel.deleteThread(thread)
+                    }
+                }
+        }
+        .searchable(text: $searchText)
+        .onChange(of: searchText) {
+            if searchText.isEmpty {
+                Task { await viewModel.fetchThreads() }
+            } else {
+                Task { await viewModel.searchAndSelectThread(query: searchText) }
             }
         }
+        .onChange(of: viewModel.selectedThreadID) {
+            guard let selectedID = viewModel.selectedThreadID,
+                  let thread = viewModel.threads.first(where: { $0.id == selectedID }) else { return }
+            Task { await viewModel.selectThread(thread) }
+        }
+        .listStyle(.insetGrouped)
         .onChange(of: focusSearch) {
-            isSearchFocused = true
+            if focusSearch {
+                // No explicit focus management needed for .searchable on iOS currently
+            }
         }
+    }
+}
+
+private struct SidebarThreadRow: View {
+    let thread: ChatThread
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(thread.name)
+                .lineLimit(1)
+            if let lastMessage = thread.lastMessage {
+                Text(lastMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
     }
 }

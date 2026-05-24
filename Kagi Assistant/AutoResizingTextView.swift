@@ -28,7 +28,7 @@ final class InputTextView: UITextView {
             }
             if let onPasteImages = self.onPasteImages, !imageTypes.isEmpty {
                 var pastedImages: [PastedImageData] = []
-                for provider in imageTypes {
+                for _ in imageTypes {
                     // Try common image types
                     for imageType in [UTType.png, UTType.jpeg, UTType.tiff, UTType.webP] {
                         if let data = pasteboard.data(forPasteboardType: imageType.identifier) {

@@ -35,7 +35,6 @@ struct HTMLMessageView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        print("[HTMLMessageView] updateUIView called, html length: \(html.count)")
         context.coordinator.parent = self
         context.coordinator.updateContent(html)
     }
@@ -215,7 +214,6 @@ struct HTMLMessageView: UIViewRepresentable {
         }
 
         func updateContent(_ html: String) {
-            print("[HTMLMessageView] updateContent called, pageReady: \(pageReady), html length: \(html.count)")
             if pageReady {
                 injectHTML(html)
             } else {
@@ -224,11 +222,7 @@ struct HTMLMessageView: UIViewRepresentable {
         }
 
         private func injectHTML(_ html: String) {
-            print("[HTMLMessageView] injectHTML called, html length: \(html.count)")
-            guard let webView else {
-                print("[HTMLMessageView] injectHTML — webView is nil!")
-                return
-            }
+            guard let webView else { return }
             // Escape for JS string literal
             let escaped = html
                 .replacingOccurrences(of: "\\", with: "\\\\")
@@ -240,7 +234,6 @@ struct HTMLMessageView: UIViewRepresentable {
         // MARK: - WKNavigationDelegate
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("[HTMLMessageView] didFinish — page is now ready")
             pageReady = true
             // Inject any content that arrived before the page was ready
             if let pending = pendingHTML {

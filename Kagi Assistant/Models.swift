@@ -77,3 +77,9 @@ struct ChatThread: Identifiable, Equatable {
         lhs.id == rhs.id
     }
 }
+
+extension ChatThread {
+    var lastMessage: String? {
+        messages.last?.content.isEmpty == false ? messages.last?.content : nil
+    }
+}

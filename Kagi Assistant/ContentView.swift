@@ -59,8 +59,8 @@ struct ContentView: View {
                 showingLogin = true
             }
         }
-        .onChange(of: viewModel.isAuthenticated) { isAuthenticated in
-            if isAuthenticated {
+        .onChange(of: viewModel.isAuthenticated) {
+            if viewModel.isAuthenticated {
                 showingLogin = false
             } else {
                 showingLogin = true
