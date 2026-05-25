@@ -16,7 +16,7 @@ struct ContentView: View {
     var body: some View {
         // New .task added here outside NavigationSplitView to check token immediately on launch
         NavigationSplitView {
-            SidebarView(viewModel: viewModel, focusSearch: $searchFocusTrigger)
+            SidebarView(viewModel: viewModel, focusSearch: $searchFocusTrigger, showingLogin: $showingLogin)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 320)
         } detail: {
             ChatView(viewModel: viewModel, showModelPicker: $showModelPicker, showingLogin: $showingLogin)

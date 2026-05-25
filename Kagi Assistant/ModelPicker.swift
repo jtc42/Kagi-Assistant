@@ -35,7 +35,7 @@ struct ModelPicker: View {
             .padding(.vertical, 6)
             .glassEffect(.regular.interactive(), in: .capsule)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glass)
         .fixedSize()
         .help("Select model")
         .disabled(viewModel.profiles.isEmpty)

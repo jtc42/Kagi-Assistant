@@ -9,7 +9,9 @@ import UIKit
 struct SidebarView: View {
     @Bindable var viewModel: ChatViewModel
     @Binding var focusSearch: Bool
+    @Binding var showingLogin: Bool
     @State private var searchText = ""
+    @State private var showAccountPopover = false
 
     var body: some View {
         List(viewModel.threads, selection: $viewModel.selectedThreadID) { thread in
@@ -40,9 +42,46 @@ struct SidebarView: View {
             Task { await viewModel.selectThread(thread) }
         }
         .listStyle(.insetGrouped)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                accountControl
+            }
+        }
         .onChange(of: focusSearch) {
             if focusSearch {
                 // No explicit focus management needed for .searchable on iOS currently
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var accountControl: some View {
+        if viewModel.isAuthenticated {
+            Button {
+                showAccountPopover.toggle()
+            } label: {
+                Label("Account", systemImage: "person.circle.fill")
+            }
+            .popover(isPresented: $showAccountPopover, arrowEdge: .bottom) {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let email = viewModel.userEmail {
+                        Text(email)
+                            .font(.callout)
+                    }
+                    Button("Sign Out", role: .destructive) {
+                        showAccountPopover = false
+                        Task { await viewModel.logout() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding()
+                .frame(minWidth: 220, alignment: .leading)
+            }
+        } else {
+            Button {
+                showingLogin = true
+            } label: {
+                Label("Sign In", systemImage: "person.crop.circle.badge.plus")
             }
         }
     }

@@ -12,7 +12,6 @@ struct ChatView: View {
     @Binding var showingLogin: Bool
     @State private var messageText = ""
     @State private var shouldAutoScroll = true
-    @State private var showAccountPopover = false
     @State private var focusTrigger = false
     @State private var showingFilePicker = false
     @State private var inputHeight: CGFloat = 36
@@ -70,21 +69,17 @@ struct ChatView: View {
                         }
                     }
                     .toolbar {
-                        ToolbarItemGroup(placement: .navigationBarTrailing) {
-                            accountControl
+                        ToolbarItem(placement: .topBarTrailing) {
                             ModelPicker(viewModel: viewModel, showPopover: $showModelPicker)
+                        }
+                        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                        ToolbarItem(placement: .topBarTrailing) {
                             Button {
                                 viewModel.createThread()
                             } label: {
-                                Image(systemName: "square.and.pencil")
-                                    .imageScale(.large)
-                                    .frame(width: 44, height: 44)
-                                    .contentShape(Rectangle())
-                                    .padding(4)
+                                Label("New Chat", systemImage: "square.and.pencil")
                             }
-                            .buttonStyle(.automatic)
                             .help("New Chat")
-                            .accessibilityLabel("New Chat")
                         }
                     }
                 }
@@ -95,59 +90,6 @@ struct ChatView: View {
                 systemImage: "bubble.left.and.bubble.right",
                 description: Text("Select a chat from the sidebar or create a new one.")
             )
-        }
-    }
-
-    @ViewBuilder
-    private var accountControl: some View {
-        if viewModel.isAuthenticated {
-            Button {
-                showAccountPopover.toggle()
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "person.circle.fill")
-                        .imageScale(.large)
-                        .frame(width: 44, height: 44)
-                    Image(systemName: "chevron.down")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.primary)
-                }
-                .contentShape(Rectangle())
-                .padding(4)
-            }
-            .buttonStyle(.automatic)
-            .help("Account")
-            .popover(isPresented: $showAccountPopover, arrowEdge: .top) {
-                VStack(alignment: .leading, spacing: 12) {
-                    if let email = viewModel.userEmail {
-                        Text(email)
-                            .font(.callout)
-                    }
-
-                    Button("Sign Out") {
-                        showAccountPopover = false
-                        Task { await viewModel.logout() }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                }
-                .padding()
-                .frame(minWidth: 220, alignment: .leading)
-            }
-            .accessibilityLabel("Account")
-        } else {
-            Button {
-                showingLogin = true
-            } label: {
-                Image(systemName: "person.crop.circle.badge.plus")
-                    .imageScale(.large)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    .padding(4)
-            }
-            .buttonStyle(.automatic)
-            .help("Sign In")
-            .accessibilityLabel("Sign In")
         }
     }
 
@@ -181,30 +123,30 @@ struct ChatView: View {
             }
 
             HStack(alignment: .bottom, spacing: 8) {
-                composerIconButton(
-                    systemName: "plus.circle.fill",
-                    label: "Attach files",
-                    foregroundStyle: .primary
-                ) {
+                Button {
                     showingFilePicker = true
+                } label: {
+                    Label("Attach files", systemImage: "plus.circle.fill")
                 }
                 .disabled(viewModel.isStreaming || editContext != nil)
 
-                composerIconButton(
-                    systemName: viewModel.internetAccess ? "network" : "network.slash",
-                    label: viewModel.internetAccess ? "Internet access enabled" : "Internet access disabled",
-                    foregroundStyle: viewModel.internetAccess ? .primary : .secondary
-                ) {
+                Button {
                     viewModel.internetAccess.toggle()
+                } label: {
+                    Label(
+                        viewModel.internetAccess ? "Internet access enabled" : "Internet access disabled",
+                        systemImage: viewModel.internetAccess ? "network" : "network.slash"
+                    )
                 }
 
                 if viewModel.selectedModelHasThinkingVariant {
-                    composerIconButton(
-                        systemName: viewModel.thinkingEnabled ? "lightbulb.fill" : "lightbulb",
-                        label: viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking",
-                        foregroundStyle: viewModel.thinkingEnabled ? .yellow : .secondary
-                    ) {
+                    Button {
                         viewModel.thinkingEnabled.toggle()
+                    } label: {
+                        Label(
+                            viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking",
+                            systemImage: viewModel.thinkingEnabled ? "lightbulb.fill" : "lightbulb"
+                        )
                     }
                 }
 
@@ -221,6 +163,7 @@ struct ChatView: View {
                 )
                 .frame(height: inputHeight)
                 .padding(.horizontal, 10)
+                .padding(.vertical, 4)
                 .background(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(Color(.secondarySystemBackground))
@@ -232,34 +175,27 @@ struct ChatView: View {
                 .accessibilityLabel("Message input")
 
                 if viewModel.isStreaming {
-                    stopButton
+                    Button(role: .destructive) {
+                        viewModel.stopGeneration()
+                    } label: {
+                        Label("Stop generation", systemImage: "stop.fill")
+                    }
                 } else {
-                    sendButton
+                    Button {
+                        send()
+                    } label: {
+                        Label("Send message", systemImage: "arrow.up")
+                    }
+                    .disabled(!canSend)
                 }
             }
+            .labelStyle(.iconOnly)
+            .buttonStyle(.glass)
+            .controlSize(.regular)
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)
         .padding(.bottom, 10)
-        .background(.bar)
-    }
-
-    private func composerIconButton(
-        systemName: String,
-        label: String,
-        foregroundStyle: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 23, weight: .regular))
-                .foregroundStyle(foregroundStyle)
-                .frame(width: 34, height: 36)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .help(label)
-        .accessibilityLabel(label)
     }
 
     private var canSend: Bool {
@@ -267,39 +203,6 @@ struct ChatView: View {
             return !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
         return !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !viewModel.composerAttachments.isEmpty
-    }
-
-    private var sendButton: some View {
-        Button {
-            send()
-        } label: {
-            Image(systemName: "arrow.up")
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(canSend ? Color.accentColor : Color.secondary.opacity(0.35)))
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!canSend)
-        .help("Send message")
-        .accessibilityLabel("Send message")
-    }
-
-    private var stopButton: some View {
-        Button {
-            viewModel.stopGeneration()
-        } label: {
-            Image(systemName: "stop.fill")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(Color.red))
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .help("Stop generation")
-        .accessibilityLabel("Stop generation")
     }
 
     private func send() {
@@ -345,11 +248,10 @@ struct ChatView: View {
     private func cancelEditing() {
         guard let context = editContext else { return }
         viewModel.cancelEditingUserMessage(context: context)
-        self.editContext = nil
+        editContext = nil
         messageText = preEditMessageText
         viewModel.composerAttachments = preEditComposerAttachments
         preEditMessageText = ""
         preEditComposerAttachments = []
     }
 }
-
