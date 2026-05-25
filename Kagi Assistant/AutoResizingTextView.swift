@@ -4,7 +4,7 @@
 //
 
 import SwiftUI
-import AppKit
+import UIKit
 import UniformTypeIdentifiers
 
 struct PastedImageData {
@@ -13,82 +13,45 @@ struct PastedImageData {
     let contentType: UTType?
 }
 
-// MARK: - Auto-resizing NSTextView wrapper
+// MARK: - iOS: Auto-resizing UITextView wrapper
 
-private class InputTextView: NSTextView {
+final class InputTextView: UITextView {
     var onSend: (() -> Void)?
     var onPasteImages: (([PastedImageData]) -> Void)?
-
-    override func keyDown(with event: NSEvent) {
-        if event.keyCode == 36 { // Return
-            if event.modifierFlags.contains(.shift) {
-                super.keyDown(with: event)
-            } else {
-                onSend?()
-            }
-            return
-        }
-        super.keyDown(with: event)
-    }
-
-    override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "a",
-           window?.firstResponder == self {
-            selectAll(nil)
-            return true
-        }
-        return super.performKeyEquivalent(with: event)
-    }
-
-    override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
-        if item.action == #selector(paste(_:)),
-           onPasteImages != nil,
-           pasteboardHasImages(NSPasteboard.general) {
-            return true
-        }
-        return super.validateUserInterfaceItem(item)
-    }
+    var focusPending: Bool = false
 
     override func paste(_ sender: Any?) {
-        let pastedImages = imageData(from: NSPasteboard.general)
-        if let onPasteImages, !pastedImages.isEmpty {
-            onPasteImages(pastedImages)
-            return
-        }
-
-        super.paste(sender)
-    }
-
-    private func pasteboardHasImages(_ pasteboard: NSPasteboard) -> Bool {
-        guard let items = pasteboard.pasteboardItems else { return false }
-        return items.contains { item in
-            item.types.contains { UTType($0.rawValue)?.conforms(to: .image) == true }
-        }
-    }
-
-    private func imageData(from pasteboard: NSPasteboard) -> [PastedImageData] {
-        guard let items = pasteboard.pasteboardItems else { return [] }
-
-        return items.compactMap { item in
-            for type in item.types {
-                guard let contentType = UTType(type.rawValue), contentType.conforms(to: .image),
-                      let data = item.data(forType: type) else {
-                    continue
-                }
-
-                return PastedImageData(
-                    data: data,
-                    mimeType: contentType.preferredMIMEType ?? "application/octet-stream",
-                    contentType: contentType
-                )
+        DispatchQueue.main.async {
+            let pasteboard = UIPasteboard.general
+            let imageTypes = pasteboard.itemProviders.filter { provider in
+                provider.hasItemConformingToTypeIdentifier(UTType.image.identifier)
             }
-
-            return nil
+            if let onPasteImages = self.onPasteImages, !imageTypes.isEmpty {
+                var pastedImages: [PastedImageData] = []
+                for _ in imageTypes {
+                    // Try common image types
+                    for imageType in [UTType.png, UTType.jpeg, UTType.tiff, UTType.webP] {
+                        if let data = pasteboard.data(forPasteboardType: imageType.identifier) {
+                            pastedImages.append(PastedImageData(
+                                data: data,
+                                mimeType: imageType.preferredMIMEType ?? "application/octet-stream",
+                                contentType: imageType
+                            ))
+                            break
+                        }
+                    }
+                }
+                if !pastedImages.isEmpty {
+                    onPasteImages(pastedImages)
+                    return
+                }
+            }
+            super.paste(sender)
         }
     }
 }
 
-struct AutoResizingTextView: NSViewRepresentable {
+struct AutoResizingTextView: UIViewRepresentable {
     @Binding var text: String
     @Binding var desiredHeight: CGFloat
     var maxLines: Int
@@ -101,58 +64,66 @@ struct AutoResizingTextView: NSViewRepresentable {
         Coordinator(self)
     }
 
-    func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSScrollView()
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
-        scrollView.borderType = .noBorder
-        scrollView.drawsBackground = false
-
+    func makeUIView(context: Context) -> InputTextView {
         let textView = InputTextView()
         textView.onSend = onSend
         textView.onPasteImages = onPasteImages
         textView.delegate = context.coordinator
-        textView.font = NSFont.preferredFont(forTextStyle: .body)
-        textView.textColor = NSColor.labelColor
+        textView.font = UIFont.preferredFont(forTextStyle: .body)
+        textView.textColor = UIColor.label
         textView.backgroundColor = .clear
-        textView.isRichText = false
-        textView.isAutomaticQuoteSubstitutionEnabled = false
-        textView.isAutomaticDashSubstitutionEnabled = false
-        textView.isAutomaticTextReplacementEnabled = false
-        textView.allowsUndo = true
-        textView.isVerticallyResizable = true
-        textView.isHorizontallyResizable = false
-        textView.textContainerInset = NSSize(width: 4, height: 8)
-        textView.textContainer?.widthTracksTextView = true
-        textView.textContainer?.lineFragmentPadding = 4
+        textView.isScrollEnabled = false
+        textView.contentInsetAdjustmentBehavior = .never
+        textView.automaticallyAdjustsScrollIndicatorInsets = false
+        textView.contentInset = .zero
+        textView.scrollIndicatorInsets = .zero
+        textView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+        textView.textContainer.lineFragmentPadding = 4
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.autocorrectionType = .default
+        textView.autocapitalizationType = .sentences
+        textView.returnKeyType = .default
 
-        scrollView.documentView = textView
         context.coordinator.textView = textView
+        context.coordinator.setupPlaceholder(in: textView)
 
         // Set initial single-line height
-        let lineHeight = textView.font!.boundingRectForFont.height
+        let lineHeight = textView.font!.lineHeight
         let inset = textView.textContainerInset
         DispatchQueue.main.async {
-            self.desiredHeight = lineHeight + inset.height * 2
+            self.desiredHeight = lineHeight + inset.top + inset.bottom
         }
 
-        return scrollView
+        return textView
     }
 
-    func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? InputTextView else { return }
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: InputTextView, context: Context) -> CGSize? {
+        let width = proposal.width ?? uiView.bounds.width
+        guard width > 0 else { return nil }
+        let measurement = context.coordinator.measureHeight(for: uiView, width: width)
+        return CGSize(width: width, height: measurement.height)
+    }
 
-        if textView.string != text {
-            textView.string = text
+    func updateUIView(_ textView: InputTextView, context: Context) {
+        textView.contentInset = .zero
+        textView.scrollIndicatorInsets = .zero
+
+        if textView.text != text {
+            textView.text = text
             context.coordinator.recalcHeight()
         }
 
         if requestFocus != context.coordinator.lastFocusTrigger {
             context.coordinator.lastFocusTrigger = requestFocus
-            DispatchQueue.main.async {
-                textView.window?.makeFirstResponder(textView)
+            if requestFocus && !textView.isFirstResponder && !textView.focusPending {
+                textView.focusPending = true
+                DispatchQueue.main.async {
+                    textView.becomeFirstResponder()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        textView.focusPending = false
+                    }
+                }
             }
         }
 
@@ -162,64 +133,81 @@ struct AutoResizingTextView: NSViewRepresentable {
         context.coordinator.updatePlaceholder()
     }
 
-    final class Coordinator: NSObject, NSTextViewDelegate {
+    final class Coordinator: NSObject, UITextViewDelegate {
         var parent: AutoResizingTextView
-        weak var textView: NSTextView?
+        weak var textView: UITextView?
         var lastFocusTrigger = false
-        private var placeholderView: NSTextField?
+        private var placeholderLabel: UILabel?
 
         init(_ parent: AutoResizingTextView) {
             self.parent = parent
         }
 
-        func textDidChange(_ notification: Notification) {
-            guard let textView else { return }
-            parent.text = textView.string
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
             recalcHeight()
             updatePlaceholder()
         }
 
         func recalcHeight() {
-            guard let textView else { return }
+            // Light fallback synchronous call for initial sizing or UI thread safe calls
+            guard let textView = textView else { return }
 
-            let font = textView.font ?? NSFont.preferredFont(forTextStyle: .body)
-            let lineHeight = font.boundingRectForFont.height
+            let measurement = measureHeight(for: textView, width: textView.bounds.width)
+            textView.isScrollEnabled = measurement.isScrollEnabled
+
+            if abs(parent.desiredHeight - measurement.height) > 0.5 {
+                parent.desiredHeight = measurement.height
+            }
+        }
+
+        func measureHeight(for textView: UITextView, width: CGFloat) -> (height: CGFloat, isScrollEnabled: Bool) {
+            let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
+            let lineHeight = font.lineHeight
             let inset = textView.textContainerInset
-            let singleLineHeight = lineHeight + inset.height * 2
-            let maxHeight = lineHeight * CGFloat(parent.maxLines) + inset.height * 2
+            let singleLineHeight = lineHeight + inset.top + inset.bottom
+            let maxHeight = lineHeight * CGFloat(parent.maxLines) + inset.top + inset.bottom
 
-            textView.layoutManager?.ensureLayout(for: textView.textContainer!)
-            let usedHeight = textView.layoutManager?.usedRect(for: textView.textContainer!).height ?? lineHeight
-            let naturalHeight = usedHeight + inset.height * 2
+            guard width > 0 else {
+                return (singleLineHeight, false)
+            }
+
+            let size = textView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
+            let naturalHeight = size.height
 
             let targetHeight = max(singleLineHeight, min(naturalHeight, maxHeight))
+            return (targetHeight, naturalHeight > maxHeight)
+        }
 
-            DispatchQueue.main.async {
-                self.parent.desiredHeight = targetHeight
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            if text == "\n" {
+                parent.onSend?()
+                return false
             }
+            return true
+        }
+
+        func setupPlaceholder(in textView: UITextView) {
+            let label = UILabel()
+            label.text = parent.placeholder
+            label.textColor = .tertiaryLabel
+            label.font = textView.font
+            label.translatesAutoresizingMaskIntoConstraints = false
+            textView.addSubview(label)
+
+            let inset = textView.textContainerInset
+            let padding = textView.textContainer.lineFragmentPadding
+            NSLayoutConstraint.activate([
+                label.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: inset.left + padding),
+                label.topAnchor.constraint(equalTo: textView.topAnchor, constant: inset.top)
+            ])
+            placeholderLabel = label
         }
 
         func updatePlaceholder() {
-            guard let textView else { return }
-
-            if placeholderView == nil {
-                let field = NSTextField(labelWithString: parent.placeholder)
-                field.textColor = .tertiaryLabelColor
-                field.font = textView.font
-                field.translatesAutoresizingMaskIntoConstraints = false
-                textView.addSubview(field)
-
-                let inset = textView.textContainerInset
-                let padding = textView.textContainer?.lineFragmentPadding ?? 0
-                NSLayoutConstraint.activate([
-                    field.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: inset.width + padding),
-                    field.topAnchor.constraint(equalTo: textView.topAnchor, constant: inset.height)
-                ])
-                placeholderView = field
-            }
-
-            placeholderView?.stringValue = parent.placeholder
-            placeholderView?.isHidden = !textView.string.isEmpty
+            placeholderLabel?.text = parent.placeholder
+            placeholderLabel?.isHidden = !(textView?.text.isEmpty ?? true)
         }
     }
 }
+

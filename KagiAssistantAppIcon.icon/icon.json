@@ -1,0 +1,66 @@
+{
+  "fill" : {
+    "automatic-gradient" : "srgb:0.28235,0.20784,0.73725,1.00000"
+  },
+  "groups" : [
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "image-name" : "KagiAssistant.png",
+          "name" : "KagiAssistant",
+          "position" : {
+            "scale" : 0.205,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "blur-material" : 0.5,
+      "layers" : [
+        {
+          "fill" : {
+            "solid" : "srgb:0.78431,0.75686,0.98039,1.00000"
+          },
+          "image-name" : "Back.png",
+          "name" : "Back",
+          "position" : {
+            "scale" : 0.2,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "name" : "Group",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "specular" : false,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.6
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

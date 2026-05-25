@@ -3,34 +3,11 @@
 //  Kagi Assistant
 //
 
-import AppKit
+import UIKit
 import SwiftUI
 import WebKit
 
-private class NonScrollableWebView: WKWebView {
-    private var isHorizontalScrolling = false
-
-    override func scrollWheel(with event: NSEvent) {
-        // Allow horizontal scroll events to be handled by the web view
-        // (e.g. for horizontally-scrollable tables) while forwarding
-        // vertical scrolls to the parent scroll view.
-        if event.phase == .began {
-            isHorizontalScrolling = abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY)
-        }
-
-        if isHorizontalScrolling {
-            super.scrollWheel(with: event)
-        } else {
-            nextResponder?.scrollWheel(with: event)
-        }
-
-        if event.phase == .ended || event.phase == .cancelled {
-            isHorizontalScrolling = false
-        }
-    }
-}
-
-struct HTMLMessageView: NSViewRepresentable {
+struct HTMLMessageView: UIViewRepresentable {
     let html: String
     @Binding var dynamicHeight: CGFloat
 
@@ -38,25 +15,26 @@ struct HTMLMessageView: NSViewRepresentable {
         Coordinator(self)
     }
 
-    func makeNSView(context: Context) -> WKWebView {
+    func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.suppressesIncrementalRendering = false
 
-        let webView = NonScrollableWebView(frame: .zero, configuration: config)
+        let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
-        webView.setValue(false, forKey: "drawsBackground")
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = false
 
         context.coordinator.webView = webView
 
-        // Load the shell page once; content will be injected via JS
         let shell = Self.shellHTML()
         webView.loadHTMLString(shell, baseURL: nil)
 
         return webView
     }
 
-    func updateNSView(_ webView: WKWebView, context: Context) {
-        print("[HTMLMessageView] updateNSView called, html length: \(html.count)")
+    func updateUIView(_ webView: WKWebView, context: Context) {
         context.coordinator.parent = self
         context.coordinator.updateContent(html)
     }
@@ -236,7 +214,6 @@ struct HTMLMessageView: NSViewRepresentable {
         }
 
         func updateContent(_ html: String) {
-            print("[HTMLMessageView] updateContent called, pageReady: \(pageReady), html length: \(html.count)")
             if pageReady {
                 injectHTML(html)
             } else {
@@ -245,11 +222,7 @@ struct HTMLMessageView: NSViewRepresentable {
         }
 
         private func injectHTML(_ html: String) {
-            print("[HTMLMessageView] injectHTML called, html length: \(html.count)")
-            guard let webView else {
-                print("[HTMLMessageView] injectHTML — webView is nil!")
-                return
-            }
+            guard let webView else { return }
             // Escape for JS string literal
             let escaped = html
                 .replacingOccurrences(of: "\\", with: "\\\\")
@@ -261,7 +234,6 @@ struct HTMLMessageView: NSViewRepresentable {
         // MARK: - WKNavigationDelegate
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("[HTMLMessageView] didFinish — page is now ready")
             pageReady = true
             // Inject any content that arrived before the page was ready
             if let pending = pendingHTML {
@@ -274,7 +246,7 @@ struct HTMLMessageView: NSViewRepresentable {
 
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url {
-                NSWorkspace.shared.open(url)
+                UIApplication.shared.open(url)
                 decisionHandler(.cancel)
             } else {
                 decisionHandler(.allow)
@@ -292,9 +264,7 @@ struct HTMLMessageView: NSViewRepresentable {
                 }
             case "copyToClipboard":
                 guard let text = message.body as? String else { return }
-                let pasteboard = NSPasteboard.general
-                pasteboard.clearContents()
-                pasteboard.setString(text, forType: .string)
+                UIPasteboard.general.string = text
             default:
                 break
             }

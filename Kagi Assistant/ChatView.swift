@@ -4,7 +4,6 @@
 //
 
 import SwiftUI
-import AppKit
 import UniformTypeIdentifiers
 
 struct ChatView: View {
@@ -12,47 +11,82 @@ struct ChatView: View {
     @Binding var showModelPicker: Bool
     @Binding var showingLogin: Bool
     @State private var messageText = ""
-    @State private var textEditorHeight: CGFloat = 32
     @State private var shouldAutoScroll = true
-    @State private var showAccountPopover = false
     @State private var focusTrigger = false
-    @State private var keyMonitor: Any?
+    @State private var showingFilePicker = false
+    @State private var inputHeight: CGFloat = 36
     @State private var editContext: MessageEditContext?
     @State private var preEditMessageText = ""
     @State private var preEditComposerAttachments: [ChatAttachment] = []
-    private let chatContentMaxWidth: CGFloat = 750
+    private let composerControlHeight: CGFloat = 44
+    private var singleLineInputHeight: CGFloat { composerControlHeight }
+    private var textFieldCornerRadius: CGFloat { singleLineInputHeight / 2 }
 
     var body: some View {
         if let thread = viewModel.selectedThread {
-            messageList(for: thread)
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    threadHeader(for: thread)
-                }
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    inputArea
-                }
-                .ignoresSafeArea(edges: .top)
-                .onChange(of: viewModel.selectedThread) {
-                    cancelEditing()
-                    focusTrigger.toggle()
-                }
-                .onAppear {
-                    keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                        if event.charactersIgnoringModifiers == "/",
-                           event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty,
-                           !(event.window?.firstResponder is NSTextView) {
-                            focusTrigger.toggle()
-                            return nil
+            NavigationStack {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            ForEach(thread.messages) { message in
+                                MessageBubble(message: message, onEdit: editAction(for: message))
+                                    .id(message.id)
+                            }
+                            Color.clear
+                                .frame(height: 1)
+                                .id("bottom")
                         }
-                        return event
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .padding(.bottom, 8)
+                    }
+                    .onScrollGeometryChange(for: Bool.self) { geo in
+                        geo.contentOffset.y + geo.containerSize.height >= geo.contentSize.height - 20
+                    } action: { _, isAtBottom in
+                        shouldAutoScroll = isAtBottom
+                    }
+                    .onChange(of: thread.messages.count) {
+                        if shouldAutoScroll {
+                            withAnimation {
+                                proxy.scrollTo("bottom", anchor: .bottom)
+                            }
+                        }
+                    }
+                    .onChange(of: thread.messages.last?.content) {
+                        if shouldAutoScroll {
+                            proxy.scrollTo("bottom", anchor: .bottom)
+                        }
+                    }
+                    .navigationTitle(thread.name)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .safeAreaBar(edge: .bottom, spacing: 0) {
+                        inputArea
+                    }
+                    .fileImporter(
+                        isPresented: $showingFilePicker,
+                        allowedContentTypes: [.item],
+                        allowsMultipleSelection: true
+                    ) { result in
+                        if case .success(let urls) = result {
+                            viewModel.addAttachments(from: urls)
+                        }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            ModelPicker(viewModel: viewModel, showPopover: $showModelPicker)
+                        }
+                        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                viewModel.createThread()
+                            } label: {
+                                Label("New Chat", systemImage: "square.and.pencil")
+                            }
+                            .help("New Chat")
+                        }
                     }
                 }
-                .onDisappear {
-                    if let keyMonitor {
-                        NSEvent.removeMonitor(keyMonitor)
-                    }
-                    keyMonitor = nil
-                }
+            }
         } else {
             ContentUnavailableView(
                 "No Chat Selected",
@@ -62,148 +96,20 @@ struct ChatView: View {
         }
     }
 
-    private func messageList(for thread: ChatThread) -> some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(thread.messages) { message in
-                        MessageBubble(message: message, onEdit: editAction(for: message))
-                            .id(message.id)
-                    }
-                    Color.clear
-                        .frame(height: 1)
-                        .id("bottom")
-                }
-                .padding()
-                .frame(maxWidth: chatContentMaxWidth, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .onScrollGeometryChange(for: Bool.self) { geo in
-                geo.contentOffset.y + geo.containerSize.height >= geo.contentSize.height - 20
-            } action: { _, isAtBottom in
-                shouldAutoScroll = isAtBottom
-            }
-            .onChange(of: thread.messages.count) {
-                if shouldAutoScroll {
-                    withAnimation {
-                        proxy.scrollTo("bottom", anchor: .bottom)
-                    }
-                }
-            }
-            .onChange(of: thread.messages.last?.content) {
-                if shouldAutoScroll {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
-            }
-        }
-    }
-
-    private func threadHeader(for thread: ChatThread) -> some View {
-        ZStack {
-            Text(thread.name)
-                .font(.headline)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .glassEffect(.regular, in: .capsule)
-
-            HStack {
-                Spacer()
-                headerControls
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .padding(.bottom, 12)
-        .background(.ultraThinMaterial)
-        .mask(
-            LinearGradient(
-                stops: [
-                    .init(color: .white, location: 0),
-                    .init(color: .white, location: 0.6),
-                    .init(color: .clear, location: 1.0)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-    }
-
-    private var headerControls: some View {
-        HStack(spacing: 8) {
-            accountControl
-            ModelPicker(viewModel: viewModel, showPopover: $showModelPicker)
-
-            Button {
-                viewModel.createThread()
-            } label: {
-                Image(systemName: "square.and.pencil")
-                    .frame(width: 18, height: 18)
-                    .padding(6)
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .glassEffect(.regular.interactive(), in: .circle)
-            .help("New Chat")
-        }
-    }
-
-    @ViewBuilder
-    private var accountControl: some View {
-        if viewModel.isAuthenticated {
-            Button {
-                showAccountPopover.toggle()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "person.circle.fill")
-                        .frame(width: 18, height: 18)
-                    Image(systemName: "chevron.down")
-                        .font(.caption2.weight(.semibold))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .glassEffect(.regular.interactive(), in: .capsule)
-            }
-            .buttonStyle(.plain)
-            .help("Account")
-            .popover(isPresented: $showAccountPopover, arrowEdge: .top) {
-                VStack(alignment: .leading, spacing: 12) {
-                    if let email = viewModel.userEmail {
-                        Text(email)
-                            .font(.callout)
-                    }
-
-                    Button("Sign Out") {
-                        showAccountPopover = false
-                        Task { await viewModel.logout() }
-                    }
-                }
-                .padding()
-                .frame(minWidth: 220, alignment: .leading)
-            }
-        } else {
-            Button {
-                showingLogin = true
-            } label: {
-                Image(systemName: "person.crop.circle.badge.plus")
-                    .frame(width: 18, height: 18)
-                    .padding(6)
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .glassEffect(.regular.interactive(), in: .circle)
-            .help("Sign In")
-        }
-    }
-
     private var inputArea: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 8) {
             if editContext != nil {
-                editModeBanner
-                    .padding(.horizontal, 12)
-                    .frame(maxWidth: chatContentMaxWidth, alignment: .leading)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                HStack(spacing: 8) {
+                    Image(systemName: "pencil")
+                        .foregroundStyle(.secondary)
+                    Text("Editing message")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Cancel", action: cancelEditing)
+                        .font(.footnote.weight(.medium))
+                }
+                .padding(.horizontal, 16)
             }
 
             if !viewModel.composerAttachments.isEmpty {
@@ -215,104 +121,99 @@ struct ChatView: View {
                             }
                         }
                     }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 12)
-                .frame(maxWidth: chatContentMaxWidth, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .center)
             }
 
             HStack(alignment: .bottom, spacing: 8) {
                 Button {
+                    showingFilePicker = true
+                } label: {
+                    composerButtonLabel("Attach files", systemImage: "plus")
+                }
+                .disabled(viewModel.isStreaming || editContext != nil)
+                .help("Attach files")
+                .frame(width: composerControlHeight, height: composerControlHeight)
+
+                Button {
                     viewModel.internetAccess.toggle()
                 } label: {
-                    Image(systemName: viewModel.internetAccess ? "network" : "network.slash")
-                        .frame(width: 18, height: 18)
-                        .foregroundStyle(viewModel.internetAccess ? .primary : .secondary)
-                        .padding(6)
-                        .contentShape(Circle())
+                    composerButtonLabel(
+                        viewModel.internetAccess ? "Internet access enabled" : "Internet access disabled",
+                        systemImage: viewModel.internetAccess ? "network" : "network.slash"
+                    )
                 }
-                .buttonStyle(.plain)
-                .glassEffect(.regular.interactive(), in: .circle)
                 .help(viewModel.internetAccess ? "Internet access enabled" : "Internet access disabled")
+                .frame(width: composerControlHeight, height: composerControlHeight)
+
                 if viewModel.selectedModelHasThinkingVariant {
                     Button {
                         viewModel.thinkingEnabled.toggle()
                     } label: {
-                        Image(systemName: viewModel.thinkingEnabled ? "lightbulb.fill" : "lightbulb")
-                            .frame(width: 18, height: 18)
-                            .foregroundStyle(viewModel.thinkingEnabled ? .yellow : .secondary)
-                            .padding(6)
-                            .contentShape(Circle())
+                        composerButtonLabel(
+                            viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking",
+                            systemImage: viewModel.thinkingEnabled ? "lightbulb.fill" : "lightbulb"
+                        )
                     }
-                    .buttonStyle(.plain)
-                    .glassEffect(.regular.interactive(), in: .circle)
                     .help(viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking")
+                    .frame(width: composerControlHeight, height: composerControlHeight)
                 }
-                Button {
-                    openAttachmentPicker()
-                } label: {
-                    Image(systemName: "plus.circle")
-                        .frame(width: 18, height: 18)
-                        .padding(6)
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .glassEffect(.regular.interactive(), in: .circle)
-                .help("Attach files")
-                .disabled(viewModel.isStreaming || editContext != nil)
 
                 AutoResizingTextView(
                     text: $messageText,
-                    desiredHeight: $textEditorHeight,
-                    maxLines: 10,
-                    placeholder: viewModel.isAuthenticated ? "Type a message..." : "Log in to start chatting...",
+                    desiredHeight: $inputHeight,
+                    maxLines: 6,
+                    placeholder: "Message",
                     requestFocus: focusTrigger,
-                    onSend: { send() },
+                    onSend: send,
                     onPasteImages: { images in
-                        guard !viewModel.isStreaming, editContext == nil else { return }
                         viewModel.addPastedImages(images)
                     }
                 )
-                .frame(height: textEditorHeight)
-                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+                .frame(height: inputHeight)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, minHeight: singleLineInputHeight, alignment: .leading)
+                .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: textFieldCornerRadius, style: .continuous))
+                .accessibilityLabel("Message input")
+                .layoutPriority(1)
 
                 if viewModel.isStreaming {
-                    Button {
+                    Button(role: .destructive) {
                         viewModel.stopGeneration()
                     } label: {
-                        Image(systemName: "stop.fill")
-                            .frame(width: 18, height: 18)
-                            .foregroundStyle(.red)
-                            .padding(6)
-                            .contentShape(Circle())
+                        composerButtonLabel("Stop generation", systemImage: "stop.fill")
                     }
-                    .buttonStyle(.plain)
-                    .glassEffect(.regular.interactive(), in: .circle)
                     .help("Stop generation")
+                    .frame(width: composerControlHeight, height: composerControlHeight)
                 } else {
-                    sendButton
+                    Button {
+                        send()
+                    } label: {
+                        composerButtonLabel("Send message", systemImage: "arrow.up")
+                    }
+                    .disabled(!canSend)
+                    .help("Send message")
+                    .frame(width: composerControlHeight, height: composerControlHeight)
                 }
             }
-            .padding(12)
-            .frame(maxWidth: chatContentMaxWidth, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .center)
+            .labelStyle(.iconOnly)
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .controlSize(.regular)
         }
-        .padding(.top, 12)
-        .background {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .mask(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .clear, location: 0),
-                            .init(color: .white, location: 0.4),
-                            .init(color: .white, location: 1.0)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-        }
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
+    }
+
+    private func composerButtonLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .imageScale(.medium)
+            .frame(width: composerControlHeight, height: composerControlHeight)
+            .fixedSize()
     }
 
     private var canSend: Bool {
@@ -320,49 +221,6 @@ struct ChatView: View {
             return !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
         return !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !viewModel.composerAttachments.isEmpty
-    }
-
-    private var editModeBanner: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "pencil")
-                .foregroundStyle(.secondary)
-            Text("Editing message")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Button("Cancel") {
-                cancelEditing()
-            }
-            .font(.caption)
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .glassEffect(.regular, in: .capsule)
-    }
-
-    @ViewBuilder
-    private var sendButton: some View {
-        let button = Button {
-            send()
-        } label: {
-            Image(systemName: "arrow.up")
-                .fontWeight(.semibold)
-                .frame(width: 18, height: 18)
-                .foregroundStyle(canSend ? .white : .primary)
-                .padding(6)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!canSend)
-
-        if canSend {
-            button
-                .glassEffect(.regular.interactive().tint(.accentColor), in: .circle)
-        } else {
-            button
-                .glassEffect(.regular.interactive(), in: .circle)
-        }
     }
 
     private func send() {
@@ -408,22 +266,10 @@ struct ChatView: View {
     private func cancelEditing() {
         guard let context = editContext else { return }
         viewModel.cancelEditingUserMessage(context: context)
-        self.editContext = nil
+        editContext = nil
         messageText = preEditMessageText
         viewModel.composerAttachments = preEditComposerAttachments
         preEditMessageText = ""
         preEditComposerAttachments = []
-    }
-
-    private func openAttachmentPicker() {
-        let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = true
-        panel.canChooseFiles = true
-        panel.canChooseDirectories = false
-        panel.allowedContentTypes = [.item]
-
-        if panel.runModal() == .OK {
-            viewModel.addAttachments(from: panel.urls)
-        }
     }
 }

@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 // MARK: - Message Bubble
 
@@ -11,7 +12,6 @@ struct MessageBubble: View {
     let message: ChatMessage
     var onEdit: (() -> Void)? = nil
     @State private var webViewHeight: CGFloat = 1
-    @State private var isHoveringUserBubble = false
 
     private var isUser: Bool { message.role == .user }
 
@@ -40,8 +40,6 @@ struct MessageBubble: View {
                         }
                         .buttonStyle(.plain)
                         .help("Edit message")
-                        .opacity(isHoveringUserBubble ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.12), value: isHoveringUserBubble)
                     }
                     Text("You")
                         .font(.caption)
@@ -63,9 +61,6 @@ struct MessageBubble: View {
                 if let onEdit {
                     Button("Edit Message", action: onEdit)
                 }
-            }
-            .onHover { hovering in
-                isHoveringUserBubble = hovering
             }
         }
     }
@@ -151,9 +146,9 @@ struct AttachmentChip: View {
         return ByteCountFormatter.string(fromByteCount: Int64(byteCount), countStyle: .file)
     }
 
-    private var thumbnailImage: NSImage? {
+    private var thumbnailImage: UIImage? {
         guard let data = attachment.thumbnailData else { return nil }
-        return NSImage(data: data)
+        return UIImage(data: data)
     }
 
     var body: some View {
@@ -164,8 +159,8 @@ struct AttachmentChip: View {
         }
     }
 
-    private func thumbnailView(image: NSImage) -> some View {
-        Image(nsImage: image)
+    private func thumbnailView(image: UIImage) -> some View {
+        Image(uiImage: image)
             .resizable()
             .aspectRatio(contentMode: .fill)
             .frame(maxWidth: 128, maxHeight: 128)

@@ -167,15 +167,9 @@ final class ChatViewModel {
         do {
             for try await chunk in await api.fetchProfiles() {
                 if chunk.header == "profiles.json", let data = chunk.data.data(using: .utf8) {
-                    print("[DEBUG] Raw profiles.json payload:\n\(chunk.data.prefix(2000))")
                     struct ProfilesWrapper: Decodable { let profiles: [KagiProfile] }
                     if let wrapper = try? JSONDecoder().decode(ProfilesWrapper.self, from: data) {
                         foundProfiles = wrapper.profiles
-                        for p in foundProfiles {
-                            print("[DEBUG] Profile — id: \(p.id ?? "nil"), name: \(p.name ?? "nil"), model: \(p.model ?? "nil"), model_name: \(p.model_name ?? "nil"), provider: \(p.model_provider ?? "nil")")
-                        }
-                    } else {
-                        print("[DEBUG] Failed to decode ProfilesWrapper")
                     }
                 }
             }
@@ -745,7 +739,6 @@ final class ChatViewModel {
         if let idx = threads.firstIndex(where: { $0.id == threadUUID }),
            let msgIdx = threads[idx].messages.firstIndex(where: { $0.id == messageId }) {
             threads[idx].messages[msgIdx].content = content
-            print("[ViewModel] updateStreamingMessage — content length: \(content.count)")
         }
     }
 
