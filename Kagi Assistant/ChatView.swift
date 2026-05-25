@@ -19,6 +19,8 @@ struct ChatView: View {
     @State private var preEditMessageText = ""
     @State private var preEditComposerAttachments: [ChatAttachment] = []
     private let composerControlHeight: CGFloat = 44
+    private var singleLineInputHeight: CGFloat { composerControlHeight }
+    private var textFieldCornerRadius: CGFloat { singleLineInputHeight / 2 }
 
     var body: some View {
         if let thread = viewModel.selectedThread {
@@ -170,7 +172,7 @@ struct ChatView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, minHeight: composerControlHeight, alignment: .leading)
-                .glassEffect(.regular.interactive(), in: .capsule)
+                .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: textFieldCornerRadius, style: .continuous))
                 .accessibilityLabel("Message input")
                 .layoutPriority(1)
 
@@ -204,6 +206,7 @@ struct ChatView: View {
     private func composerButtonLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
             .imageScale(.medium)
+            .frame(width: composerControlHeight, height: composerControlHeight)
     }
 
     private var canSend: Bool {
