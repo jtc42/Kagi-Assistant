@@ -41,9 +41,10 @@ struct SidebarView: View {
                   let thread = viewModel.threads.first(where: { $0.id == selectedID }) else { return }
             Task { await viewModel.selectThread(thread) }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.sidebar)
+        .navigationTitle("Chats")
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: .topBarLeading) {
                 accountControl
             }
         }
@@ -101,7 +102,5 @@ private struct SidebarThreadRow: View {
                     .lineLimit(1)
             }
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 16)
     }
 }

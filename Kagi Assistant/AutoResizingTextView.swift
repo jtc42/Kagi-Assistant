@@ -75,6 +75,8 @@ struct AutoResizingTextView: UIViewRepresentable {
         textView.isScrollEnabled = false
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
         textView.textContainer.lineFragmentPadding = 4
+        textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.autocorrectionType = .default
         textView.autocapitalizationType = .sentences
         textView.returnKeyType = .default
@@ -90,6 +92,13 @@ struct AutoResizingTextView: UIViewRepresentable {
         }
 
         return textView
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: InputTextView, context: Context) -> CGSize? {
+        let width = proposal.width ?? uiView.bounds.width
+        guard width > 0 else { return nil }
+        let measurement = context.coordinator.measureHeight(for: uiView, width: width)
+        return CGSize(width: width, height: measurement.height)
     }
 
     func updateUIView(_ textView: InputTextView, context: Context) {
@@ -129,55 +138,38 @@ struct AutoResizingTextView: UIViewRepresentable {
 
         func textViewDidChange(_ textView: UITextView) {
             parent.text = textView.text
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.recalcHeightAsync()
-                DispatchQueue.main.async {
-                    self?.updatePlaceholder()
-                }
-            }
-        }
-
-        private func recalcHeightAsync() {
-            guard let textView = textView else { return }
-
-            let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
-            let lineHeight = font.lineHeight
-            let inset = textView.textContainerInset
-            let singleLineHeight = lineHeight + inset.top + inset.bottom
-            let maxHeight = lineHeight * CGFloat(parent.maxLines) + inset.top + inset.bottom
-
-            let size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .greatestFiniteMagnitude))
-            let naturalHeight = size.height
-
-            let targetHeight = max(singleLineHeight, min(naturalHeight, maxHeight))
-            let isScrollEnabled = naturalHeight > maxHeight
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.parent.desiredHeight = targetHeight
-                self.textView?.isScrollEnabled = isScrollEnabled
-            }
+            recalcHeight()
+            updatePlaceholder()
         }
 
         func recalcHeight() {
             // Light fallback synchronous call for initial sizing or UI thread safe calls
             guard let textView = textView else { return }
 
+            let measurement = measureHeight(for: textView, width: textView.bounds.width)
+            textView.isScrollEnabled = measurement.isScrollEnabled
+
+            if abs(parent.desiredHeight - measurement.height) > 0.5 {
+                parent.desiredHeight = measurement.height
+            }
+        }
+
+        func measureHeight(for textView: UITextView, width: CGFloat) -> (height: CGFloat, isScrollEnabled: Bool) {
             let font = textView.font ?? UIFont.preferredFont(forTextStyle: .body)
             let lineHeight = font.lineHeight
             let inset = textView.textContainerInset
             let singleLineHeight = lineHeight + inset.top + inset.bottom
             let maxHeight = lineHeight * CGFloat(parent.maxLines) + inset.top + inset.bottom
 
-            let size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .greatestFiniteMagnitude))
+            guard width > 0 else {
+                return (singleLineHeight, false)
+            }
+
+            let size = textView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
             let naturalHeight = size.height
 
             let targetHeight = max(singleLineHeight, min(naturalHeight, maxHeight))
-            textView.isScrollEnabled = naturalHeight > maxHeight
-
-            DispatchQueue.main.async {
-                self.parent.desiredHeight = targetHeight
-            }
+            return (targetHeight, naturalHeight > maxHeight)
         }
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {

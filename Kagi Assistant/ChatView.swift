@@ -18,6 +18,7 @@ struct ChatView: View {
     @State private var editContext: MessageEditContext?
     @State private var preEditMessageText = ""
     @State private var preEditComposerAttachments: [ChatAttachment] = []
+    private let composerControlHeight: CGFloat = 44
 
     var body: some View {
         if let thread = viewModel.selectedThread {
@@ -122,32 +123,35 @@ struct ChatView: View {
                 }
             }
 
-            HStack(alignment: .bottom, spacing: 8) {
+            HStack(alignment: .top, spacing: 8) {
                 Button {
                     showingFilePicker = true
                 } label: {
-                    Label("Attach files", systemImage: "plus.circle.fill")
+                    composerButtonLabel("Attach files", systemImage: "plus")
                 }
                 .disabled(viewModel.isStreaming || editContext != nil)
+                .help("Attach files")
 
                 Button {
                     viewModel.internetAccess.toggle()
                 } label: {
-                    Label(
+                    composerButtonLabel(
                         viewModel.internetAccess ? "Internet access enabled" : "Internet access disabled",
                         systemImage: viewModel.internetAccess ? "network" : "network.slash"
                     )
                 }
+                .help(viewModel.internetAccess ? "Internet access enabled" : "Internet access disabled")
 
                 if viewModel.selectedModelHasThinkingVariant {
                     Button {
                         viewModel.thinkingEnabled.toggle()
                     } label: {
-                        Label(
+                        composerButtonLabel(
                             viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking",
                             systemImage: viewModel.thinkingEnabled ? "lightbulb.fill" : "lightbulb"
                         )
                     }
+                    .help(viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking")
                 }
 
                 AutoResizingTextView(
@@ -162,40 +166,44 @@ struct ChatView: View {
                     }
                 )
                 .frame(height: inputHeight)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .background(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color(.secondarySystemBackground))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color(.separator).opacity(0.35), lineWidth: 0.5)
-                )
+                .frame(maxWidth: .infinity, minHeight: composerControlHeight, alignment: .leading)
+                .glassEffect(.regular.interactive(), in: .capsule)
                 .accessibilityLabel("Message input")
+                .layoutPriority(1)
 
                 if viewModel.isStreaming {
                     Button(role: .destructive) {
                         viewModel.stopGeneration()
                     } label: {
-                        Label("Stop generation", systemImage: "stop.fill")
+                        composerButtonLabel("Stop generation", systemImage: "stop.fill")
                     }
+                    .help("Stop generation")
                 } else {
                     Button {
                         send()
                     } label: {
-                        Label("Send message", systemImage: "arrow.up")
+                        composerButtonLabel("Send message", systemImage: "arrow.up")
                     }
                     .disabled(!canSend)
+                    .help("Send message")
                 }
             }
             .labelStyle(.iconOnly)
             .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
             .controlSize(.regular)
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)
         .padding(.bottom, 10)
+    }
+
+    private func composerButtonLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .imageScale(.medium)
     }
 
     private var canSend: Bool {

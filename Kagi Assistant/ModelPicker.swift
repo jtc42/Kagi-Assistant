@@ -24,18 +24,15 @@ struct ModelPicker: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "cpu")
-                    .frame(width: 14, height: 14)
                 Text(selectedProfileName)
                     .lineLimit(1)
                 Image(systemName: "chevron.down")
-                    .font(.caption2.weight(.semibold))
+                    .imageScale(.small)
             }
-            .font(.caption)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .font(.callout)
         }
         .buttonStyle(.glass)
+        .buttonBorderShape(.capsule)
         .fixedSize()
         .help("Select model")
         .disabled(viewModel.profiles.isEmpty)
