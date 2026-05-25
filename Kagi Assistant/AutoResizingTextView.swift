@@ -73,6 +73,10 @@ struct AutoResizingTextView: UIViewRepresentable {
         textView.textColor = UIColor.label
         textView.backgroundColor = .clear
         textView.isScrollEnabled = false
+        textView.contentInsetAdjustmentBehavior = .never
+        textView.automaticallyAdjustsScrollIndicatorInsets = false
+        textView.contentInset = .zero
+        textView.scrollIndicatorInsets = .zero
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
         textView.textContainer.lineFragmentPadding = 4
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -102,6 +106,9 @@ struct AutoResizingTextView: UIViewRepresentable {
     }
 
     func updateUIView(_ textView: InputTextView, context: Context) {
+        textView.contentInset = .zero
+        textView.scrollIndicatorInsets = .zero
+
         if textView.text != text {
             textView.text = text
             context.coordinator.recalcHeight()

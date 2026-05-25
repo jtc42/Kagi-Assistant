@@ -59,7 +59,7 @@ struct ChatView: View {
                     }
                     .navigationTitle(thread.name)
                     .navigationBarTitleDisplayMode(.inline)
-                    .safeAreaInset(edge: .bottom) {
+                    .safeAreaBar(edge: .bottom, spacing: 0) {
                         inputArea
                     }
                     .fileImporter(
@@ -125,7 +125,7 @@ struct ChatView: View {
                 }
             }
 
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .bottom, spacing: 8) {
                 Button {
                     showingFilePicker = true
                 } label: {
@@ -133,6 +133,7 @@ struct ChatView: View {
                 }
                 .disabled(viewModel.isStreaming || editContext != nil)
                 .help("Attach files")
+                .frame(width: composerControlHeight, height: composerControlHeight)
 
                 Button {
                     viewModel.internetAccess.toggle()
@@ -143,6 +144,7 @@ struct ChatView: View {
                     )
                 }
                 .help(viewModel.internetAccess ? "Internet access enabled" : "Internet access disabled")
+                .frame(width: composerControlHeight, height: composerControlHeight)
 
                 if viewModel.selectedModelHasThinkingVariant {
                     Button {
@@ -154,6 +156,7 @@ struct ChatView: View {
                         )
                     }
                     .help(viewModel.thinkingEnabled ? "Thinking enabled" : "Enable thinking")
+                    .frame(width: composerControlHeight, height: composerControlHeight)
                 }
 
                 AutoResizingTextView(
@@ -171,7 +174,7 @@ struct ChatView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .frame(maxWidth: .infinity, minHeight: composerControlHeight, alignment: .leading)
+                .frame(maxWidth: .infinity, minHeight: singleLineInputHeight, alignment: .leading)
                 .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: textFieldCornerRadius, style: .continuous))
                 .accessibilityLabel("Message input")
                 .layoutPriority(1)
@@ -183,6 +186,7 @@ struct ChatView: View {
                         composerButtonLabel("Stop generation", systemImage: "stop.fill")
                     }
                     .help("Stop generation")
+                    .frame(width: composerControlHeight, height: composerControlHeight)
                 } else {
                     Button {
                         send()
@@ -191,6 +195,7 @@ struct ChatView: View {
                     }
                     .disabled(!canSend)
                     .help("Send message")
+                    .frame(width: composerControlHeight, height: composerControlHeight)
                 }
             }
             .labelStyle(.iconOnly)
@@ -200,13 +205,15 @@ struct ChatView: View {
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)
-        .padding(.bottom, 10)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
     }
 
     private func composerButtonLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
             .imageScale(.medium)
             .frame(width: composerControlHeight, height: composerControlHeight)
+            .fixedSize()
     }
 
     private var canSend: Bool {
